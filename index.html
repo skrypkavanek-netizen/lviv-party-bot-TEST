@@ -297,24 +297,31 @@ window.addEventListener('DOMContentLoaded', () => {
                 `;
             }
                         `;
-                    } else if (fav.type === 'event' && events[fav.id]) {
-                        const e = events[fav.id];
-                        const price = e['Ціна'] || e['Ціна при вході'] || e['Вартість'] || '';
-                        html += `
-                            <div class="card" onclick="openEventModal(${fav.id})">
-                                <div class="fav-btn active" onclick="toggleFavorite('event', ${fav.id}, event)">♥</div>
-                                ${e['Афіша (посилання)'] || e['Фото'] ? `<img src="${e['Афіша (посилання)'] || e['Фото']}" class="card-img" alt="Афіша">` : ''}
-                                <div class="card-body">
-                                    <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
-                                        <span class="card-badge">📅 ${e['Дата та час'] || 'Незабаром'}</span>
-                                        <span class="card-badge" style="background: rgba(212, 143, 255, 0.15); border-color: rgba(212, 143, 255, 0.3); color: #e8c5ff;">💵 ${price ? price : 'Ціна'}</span>
-                                    </div>
-                                    <div class="card-title">${e['Назва події'] || e['Назва'] || ''}</div>
-                                    <div class="card-meta">🏛 ${e['Заклад'] || e['Локація'] || ''}</div>
-                                </div>
-                            </div>
-                        `;
-                    }
+                   } else if (fav.type === 'event' && events[fav.id]) {
+            const e = events[fav.id];
+            const price = e['Ціна'] || e['Ціна при вході'] || e['Вартість'] || '';
+            
+            // Розраховуємо відстань для події
+            const lat = e['Широта'] || e['Lat'] || e['lat'];
+            const lon = e['Довгота'] || e['Lon'] || e['lng'] || e['lon'];
+            const distanceText = (lat && lon) ? formatDistanceText(parseFloat(lat), parseFloat(lon)) : '';
+
+            html += `
+                <div class="card" onclick="openEventModal(${fav.id})">
+                    <div class="fav-btn active" onclick="toggleFavorite('event', ${fav.id}, event)">♥</div>
+                    ${e['Афіша (посилання)'] || e['Фото'] ? `<img src="${e['Афіша (посилання)'] || e['Фото']}" class="card-img" alt="Афіша">` : ''}
+                    <div class="card-body">
+                        <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
+                            <span class="card-badge">📅 ${e['Дата та час'] || 'Незабаром'}</span>
+                            <span class="card-badge" style="background: rgba(212, 143, 255, 0.15); border-color: rgba(212, 143, 255, 0.3); color: #e8c5ff;">💵 ${price ? price : 'Ціна'}</span>
+                            ${distanceText ? `<span class="card-badge" style="background: rgba(255, 255, 255, 0.1);">🚶‍♂️ ${distanceText}</span>` : ''}
+                        </div>
+                        <div class="card-title">${e['Назва події'] || e['Назва'] || ''}</div>
+                        <div class="card-meta">🏰 ${e['Заклад'] || e['Локація'] || ''}</div>
+                    </div>
+                </div>
+            `;
+        }
                 });
                 container.innerHTML = html || '<div class="loader">У вас ще немає збережених закладів чи подій ⭐<br>Натискайте сердечко на картках!</div>';
                 return;
