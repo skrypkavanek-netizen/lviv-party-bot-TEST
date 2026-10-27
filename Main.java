@@ -130,7 +130,7 @@ public class Main {
     private static void sendMiniAppButton(String chatId, String customText) {
         try {
             long cacheVersion = System.currentTimeMillis();
-            String webAppUrl = "https://skrypkavanek-netizen.github.io/lviv-party-bot/?v=" + cacheVersion;
+            String webAppUrl = "https://skrypkavanek-netizen.github.io/lviv-party-bot-TEST/" + cacheVersion;
 
             String jsonBody = "{" +
                     "\"chat_id\":\"" + chatId + "\"," +
