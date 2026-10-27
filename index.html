@@ -272,19 +272,30 @@ window.addEventListener('DOMContentLoaded', () => {
                 let html = '';
                 
                 favs.forEach(fav => {
-                    if (fav.type === 'place' && places[fav.id]) {
-                        const p = places[fav.id];
-                        html += `
-                            <div class="card" onclick="openPlaceModal(${fav.id})">
-                                <div class="fav-btn active" onclick="toggleFavorite('place', ${fav.id}, event)">♥</div>
-                                ${(p['Фото (посилання)'] || p['Фото'] || p['Image']) ? `<img src="${p['Фото (посилання)'] || p['Фото'] || p['Image']}" class="card-img" alt="Фото">` : ''}
-                                <div class="card-body">
-                                    <span class="card-badge">${p['Категорія'] || 'Бар / Тусовка'}</span>
-                                    <div class="card-title">${p['Назва закладу'] || p['Назва'] || ''}</div>
-                                    <div class="card-desc">${p['Опис / Вайб'] || p['Опис'] || ''}</div>
-                                    <div class="card-meta">📍 ${p['Адреса'] || 'Львів'}</div>
-                                </div>
+            if (fav.type === 'place' && places[fav.id]) {
+                const p = places[fav.id];
+                
+                // Розраховуємо відстань
+                const lat = p['Широта'] || p['Lat'] || p['lat'];
+                const lon = p['Довгота'] || p['Lon'] || p['lng'] || p['lon'];
+                const distanceText = (lat && lon) ? formatDistanceText(parseFloat(lat), parseFloat(lon)) : '';
+
+                html += `
+                    <div class="card" onclick="openPlaceModal(${fav.id})">
+                        <div class="fav-btn active" onclick="toggleFavorite('place', ${fav.id}, event)">♥</div>
+                        ${p['Фото (посилання)'] || p['Фото'] || p['Image'] ? `<img src="${p['Фото (посилання)'] || p['Фото'] || p['Image']}" class="card-img" alt="Фото">` : ''}
+                        <div class="card-body">
+                            <span class="card-badge">${p['Категорія'] || 'Бар / Тусовка'}</span>
+                            <div class="card-title">${p['Назва закладу'] || p['Назва'] || ''}</div>
+                            <div class="card-desc">${p['Опис / Вайб'] || p['Опис'] || ''}</div>
+                            <div class="card-meta">
+                                📍 ${p['Адреса'] || 'Львів'}
+                                ${distanceText ? ` • 🚶‍♂️ ${distanceText}` : ''}
                             </div>
+                        </div>
+                    </div>
+                `;
+            }
                         `;
                     } else if (fav.type === 'event' && events[fav.id]) {
                         const e = events[fav.id];
