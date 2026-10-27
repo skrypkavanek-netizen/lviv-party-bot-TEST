@@ -121,54 +121,49 @@
     <script>
         let userLocation = null;
 
-// Запитуємо геолокацію при завантаженні сайту (або при кліку)
-function initGeolocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                userLocation = {
-                    lat: position.coords.latitude,
-                    lon: position.coords.longitude
-                };
-            },
-            (error) => {
-                console.log("Користувач не поділився геопозицією");
-                userLocation = null;
+        function initGeolocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lon: position.coords.longitude
+                        };
+                    },
+                    (error) => {
+                        console.log("Користувач не поділився геопозицією");
+                        userLocation = null;
+                    }
+                );
             }
-        );
-    }
-}
+        }
 
-// Формула для розрахунку відстані в метрах між двома точками
-function getDistanceMeters(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Радіус Землі в метрах
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-}
+        function getDistanceMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371e3;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
 
-// Форматування виводу (наприклад: "800 м від мене" або "1.2 км від мене")
-function formatDistanceText(lat, lon) {
-    if (!userLocation) return ""; // Якщо гео не надано — нічого не повертаємо
-    
-    const meters = getDistanceMeters(userLocation.lat, userLocation.lon, lat, lon);
-    
-    if (meters < 1000) {
-        return `${Math.round(meters)} м від мене`;
-    } else {
-        return `${(meters / 1000).toFixed(1)} км від мене`;
-    }
-}
+        function formatDistanceText(lat, lon) {
+            if (!userLocation) return "";
+            const meters = getDistanceMeters(userLocation.lat, userLocation.lon, lat, lon);
+            if (meters < 1000) {
+                return `${Math.round(meters)} м від мене`;
+            } else {
+                return `${(meters / 1000).toFixed(1)} км від мене`;
+            }
+        }
 
-// Викликаємо при старті сторінки
-window.addEventListener('DOMContentLoaded', () => {
-    initGeolocation();
-});
+        window.addEventListener('DOMContentLoaded', () => {
+            initGeolocation();
+        });
+
         const API_URL = "https://script.google.com/macros/s/AKfycbzHkKm2jhWes-KrKUcY5w7Yq5gCvp4ELum8sprFGfER20Tl6Ar2t21ghziV_M8AUUcBbg/exec";
         let dbData = { Заклади: [], Події: [] };
         let currentTab = 'places';
@@ -217,17 +212,12 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Покращений календарний фільтр дат
         function matchDateFilter(dateStr, filter) {
             if (filter === 'all' || !dateStr) return true;
-            
             const lowerStr = String(dateStr).toLowerCase();
             const now = new Date();
-            
             const formatDate = (d) => `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`;
-            
             const todayStr = formatDate(now);
-            
             const tomorrowObj = new Date(now);
             tomorrowObj.setDate(now.getDate() + 1);
             const tomorrowStr = formatDate(tomorrowObj);
@@ -239,24 +229,18 @@ window.addEventListener('DOMContentLoaded', () => {
                 return lowerStr.includes('завтра') || lowerStr.includes(tomorrowStr);
             }
             if (filter === 'weekend') {
-                // Пошук за словами
                 if (lowerStr.includes('субота') || lowerStr.includes('неділя') || lowerStr.includes('вихідн')) {
                     return true;
                 }
-                
-                // Динамічний розрахунок дати ближчих суботи та неділі
-                const currentDay = now.getDay(); // 0 - Неділя, 6 - Субота
+                const currentDay = now.getDay();
                 const distToSat = (6 - currentDay + 7) % 7;
                 const distToSun = (0 - currentDay + 7) % 7;
-                
                 const satObj = new Date(now);
                 satObj.setDate(now.getDate() + distToSat);
                 const satStr = formatDate(satObj);
-                
                 const sunObj = new Date(now);
                 sunObj.setDate(now.getDate() + distToSun);
                 const sunStr = formatDate(sunObj);
-
                 return lowerStr.includes(satStr) || lowerStr.includes(sunStr);
             }
             return true;
@@ -272,56 +256,50 @@ window.addEventListener('DOMContentLoaded', () => {
                 let html = '';
                 
                 favs.forEach(fav => {
-            if (fav.type === 'place' && places[fav.id]) {
-                const p = places[fav.id];
-                
-                // Розраховуємо відстань
-                const lat = p['Широта'] || p['Lat'] || p['lat'];
-                const lon = p['Довгота'] || p['Lon'] || p['lng'] || p['lon'];
-                const distanceText = (lat && lon) ? formatDistanceText(parseFloat(lat), parseFloat(lon)) : '';
+                    if (fav.type === 'place' && places[fav.id]) {
+                        const p = places[fav.id];
+                        const lat = p['Широта'] || p['Lat'] || p['lat'];
+                        const lon = p['Довгота'] || p['Lon'] || p['lng'] || p['lon'];
+                        const distanceText = (lat && lon) ? formatDistanceText(parseFloat(lat), parseFloat(lon)) : '';
 
-                html += `
-                    <div class="card" onclick="openPlaceModal(${fav.id})">
-                        <div class="fav-btn active" onclick="toggleFavorite('place', ${fav.id}, event)">♥</div>
-                        ${p['Фото (посилання)'] || p['Фото'] || p['Image'] ? `<img src="${p['Фото (посилання)'] || p['Фото'] || p['Image']}" class="card-img" alt="Фото">` : ''}
-                        <div class="card-body">
-                            <span class="card-badge">${p['Категорія'] || 'Бар / Тусовка'}</span>
-                            <div class="card-title">${p['Назва закладу'] || p['Назва'] || ''}</div>
-                            <div class="card-desc">${p['Опис / Вайб'] || p['Опис'] || ''}</div>
-                            <div class="card-meta">
-                                📍 ${p['Адреса'] || 'Львів'}
-                                ${distanceText ? ` • 🚶‍♂️ ${distanceText}` : ''}
+                        html += `
+                            <div class="card" onclick="openPlaceModal(${fav.id})">
+                                <div class="fav-btn active" onclick="toggleFavorite('place', ${fav.id}, event)">♥</div>
+                                ${p['Фото (посилання)'] || p['Фото'] || p['Image'] ? `<img src="${p['Фото (посилання)'] || p['Фото'] || p['Image']}" class="card-img" alt="Фото">` : ''}
+                                <div class="card-body">
+                                    <span class="card-badge">${p['Категорія'] || 'Бар / Тусовка'}</span>
+                                    <div class="card-title">${p['Назва закладу'] || p['Назва'] || ''}</div>
+                                    <div class="card-desc">${p['Опис / Вайб'] || p['Опис'] || ''}</div>
+                                    <div class="card-meta">
+                                        📍 ${p['Адреса'] || 'Львів'}
+                                        ${distanceText ? ` • 🚶‍♂️ ${distanceText}` : ''}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                `;
-            }
                         `;
-                   } else if (fav.type === 'event' && events[fav.id]) {
-            const e = events[fav.id];
-            const price = e['Ціна'] || e['Ціна при вході'] || e['Вартість'] || '';
-            
-            // Розраховуємо відстань для події
-            const lat = e['Широта'] || e['Lat'] || e['lat'];
-            const lon = e['Довгота'] || e['Lon'] || e['lng'] || e['lon'];
-            const distanceText = (lat && lon) ? formatDistanceText(parseFloat(lat), parseFloat(lon)) : '';
+                    } else if (fav.type === 'event' && events[fav.id]) {
+                        const e = events[fav.id];
+                        const price = e['Ціна'] || e['Ціна при вході'] || e['Вартість'] || '';
+                        const lat = e['Широта'] || e['Lat'] || e['lat'];
+                        const lon = e['Довгота'] || e['Lon'] || e['lng'] || e['lon'];
+                        const distanceText = (lat && lon) ? formatDistanceText(parseFloat(lat), parseFloat(lon)) : '';
 
-            html += `
-                <div class="card" onclick="openEventModal(${fav.id})">
-                    <div class="fav-btn active" onclick="toggleFavorite('event', ${fav.id}, event)">♥</div>
-                    ${e['Афіша (посилання)'] || e['Фото'] ? `<img src="${e['Афіша (посилання)'] || e['Фото']}" class="card-img" alt="Афіша">` : ''}
-                    <div class="card-body">
-                        <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
-                            <span class="card-badge">📅 ${e['Дата та час'] || 'Незабаром'}</span>
-                            <span class="card-badge" style="background: rgba(212, 143, 255, 0.15); border-color: rgba(212, 143, 255, 0.3); color: #e8c5ff;">💵 ${price ? price : 'Ціна'}</span>
-                            ${distanceText ? `<span class="card-badge" style="background: rgba(255, 255, 255, 0.1);">🚶‍♂️ ${distanceText}</span>` : ''}
-                        </div>
-                        <div class="card-title">${e['Назва події'] || e['Назва'] || ''}</div>
-                        <div class="card-meta">🏰 ${e['Заклад'] || e['Локація'] || ''}</div>
-                    </div>
-                </div>
-            `;
-        }
+                        html += `
+                            <div class="card" onclick="openEventModal(${fav.id})">
+                                <div class="fav-btn active" onclick="toggleFavorite('event', ${fav.id}, event)">♥</div>
+                                ${e['Афіша (посилання)'] || e['Фото'] ? `<img src="${e['Афіша (посилання)'] || e['Фото']}" class="card-img" alt="Афіша">` : ''}
+                                <div class="card-body">
+                                    <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
+                                        <span class="card-badge">📅 ${e['Дата та час'] || 'Незабаром'}</span>
+                                        <span class="card-badge" style="background: rgba(212, 143, 255, 0.15); border-color: rgba(212, 143, 255, 0.3); color: #e8c5ff;">💵 ${price ? price : 'Ціна'}</span>
+                                        ${distanceText ? `<span class="card-badge" style="background: rgba(255, 255, 255, 0.1);">🚶‍♂️ ${distanceText}</span>` : ''}
+                                    </div>
+                                    <div class="card-title">${e['Назва події'] || e['Назва'] || ''}</div>
+                                    <div class="card-meta">🏰 ${e['Заклад'] || e['Локація'] || ''}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
                 });
                 container.innerHTML = html || '<div class="loader">У вас ще немає збережених закладів чи подій ⭐<br>Натискайте сердечко на картках!</div>';
                 return;
@@ -341,6 +319,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
                 container.innerHTML = places.map((p, idx) => {
                     const isFav = isFavorite('place', idx);
+                    const lat = p['Широта'] || p['Lat'] || p['lat'];
+                    const lon = p['Довгота'] || p['Lon'] || p['lng'] || p['lon'];
+                    const distanceText = (lat && lon) ? formatDistanceText(parseFloat(lat), parseFloat(lon)) : '';
+
                     return `
                         <div class="card" onclick="openPlaceModal(${idx})">
                             <div class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite('place', ${idx}, event)">${isFav ? '♥' : '♡'}</div>
@@ -349,7 +331,10 @@ window.addEventListener('DOMContentLoaded', () => {
                                 <span class="card-badge">${p['Категорія'] || 'Бар / Тусовка'}</span>
                                 <div class="card-title">${p['Назва закладу'] || p['Назва'] || ''}</div>
                                 <div class="card-desc">${p['Опис / Вайб'] || p['Опис'] || ''}</div>
-                                <div class="card-meta">📍 ${p['Адреса'] || 'Львів'}</div>
+                                <div class="card-meta">
+                                    📍 ${p['Адреса'] || 'Львів'}
+                                    ${distanceText ? ` • 🚶‍♂️ ${distanceText}` : ''}
+                                </div>
                                 ${(p['Графік'] || p['Час роботи']) ? `<div class="card-meta" style="margin-top: 4px; color: #d084ff;">🕒 ${p['Графік'] || p['Час роботи']}</div>` : ''}
                             </div>
                         </div>
@@ -367,6 +352,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 container.innerHTML = events.map((e, idx) => {
                     const price = e['Ціна'] || e['Ціна при вході'] || e['Вартість'] || '';
                     const isFav = isFavorite('event', idx);
+                    const lat = e['Широта'] || e['Lat'] || e['lat'];
+                    const lon = e['Довгота'] || e['Lon'] || e['lng'] || e['lon'];
+                    const distanceText = (lat && lon) ? formatDistanceText(parseFloat(lat), parseFloat(lon)) : '';
+
                     return `
                         <div class="card" onclick="openEventModal(${idx})">
                             <div class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite('event', ${idx}, event)">${isFav ? '♥' : '♡'}</div>
@@ -375,6 +364,7 @@ window.addEventListener('DOMContentLoaded', () => {
                                 <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
                                     <span class="card-badge">📅 ${e['Дата та час'] || 'Незабаром'}</span>
                                     <span class="card-badge" style="background: rgba(212, 143, 255, 0.15); border-color: rgba(212, 143, 255, 0.3); color: #e8c5ff;">💵 ${price ? price : 'Ціна'}</span>
+                                    ${distanceText ? `<span class="card-badge" style="background: rgba(255, 255, 255, 0.1);">🚶‍♂️ ${distanceText}</span>` : ''}
                                 </div>
                                 <div class="card-title">${e['Назва події'] || e['Назва'] || ''}</div>
                                 <div class="card-meta">🏛 ${e['Заклад'] || e['Локація'] || ''}</div>
@@ -534,35 +524,20 @@ window.addEventListener('DOMContentLoaded', () => {
             if (!map) {
                 map = L.map('map-container', { zoomControl: true }).setView([49.842957, 24.031111], 14);
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
-                map.on('zoomend', updateMarkersZoom);
-
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(position => {
-                        const userIcon = L.divIcon({
-                            className: 'user-location-marker',
-                            html: '<div style="background:#007aff; width:14px; height:14px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 10px #007aff;"></div>',
-                            iconSize: [14, 14], iconAnchor: [7, 7]
-                        });
-                        L.marker([position.coords.latitude, position.coords.longitude], { icon: userIcon }).addTo(map).bindPopup('<b>Ви тут 📍</b>');
-                    }, () => {});
-                }
             }
-
+            
             placeMarkers.forEach(item => map.removeLayer(item.marker));
             placeMarkers = [];
+
             const isLarge = map.getZoom() >= 17;
 
             places.forEach((p, idx) => {
-                const rawLat = p['Широта'] || p['Lat'] || p['lat'] || p['latitude'] || p['Координати'];
-                const rawLng = p['Довгота'] || p['Lng'] || p['lng'] || p['longitude'];
-                let lat = parseFloat(rawLat);
-                let lng = parseFloat(rawLng);
-
-                if (isNaN(lat) && typeof rawLat === 'string' && rawLat.includes(',')) {
-                    const parts = rawLat.split(',');
-                    lat = parseFloat(parts[0]);
-                    lng = parseFloat(parts[1]);
-                }
+                const rawCoords = p['Координати'] || p['Координаты'] || p['Coordinates'];
+                if (!rawCoords) return;
+                const parts = String(rawCoords).split(',');
+                if (parts.length < 2) return;
+                const lat = parseFloat(parts[0]);
+                const lng = parseFloat(parts[1]);
 
                 if (!isNaN(lat) && !isNaN(lng)) {
                     const venueName = p['Назва закладу'] || p['Назва'] || 'Заклад';
@@ -576,6 +551,9 @@ window.addEventListener('DOMContentLoaded', () => {
                     placeMarkers.push({ marker, name: venueName, placeData: p });
                 }
             });
+
+            map.off('zoomend', updateMarkersZoom);
+            map.on('zoomend', updateMarkersZoom);
         }
 
         function filterPlaces(category, btn) {
