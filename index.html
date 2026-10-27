@@ -35,8 +35,9 @@
 
         .card-badge { display: inline-block; background: rgba(168, 85, 247, 0.2); color: #d084ff; font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(168, 85, 247, 0.3); }
         .card-title { font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #ffffff; }
-        .card-desc { font-size: 13px; color: #bfaed9; margin-bottom: 10px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .card-meta { font-size: 12px; color: #8c76ab; display: flex; align-items: center; gap: 4px; margin-top: 6px; }
+        .card-desc { font-size: 13px; color: #bfaed9; margin-bottom: 8px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-meta { font-size: 12px; color: #8c76ab; display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+        .card-distance { font-size: 12px; color: #d084ff; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
         
         .leaflet-div-icon { background: transparent !important; border: none !important; }
         .custom-pin-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; transform: translate(-50%, -100%); }
@@ -270,10 +271,8 @@
                                     <span class="card-badge">${p['Категорія'] || 'Бар / Тусовка'}</span>
                                     <div class="card-title">${p['Назва закладу'] || p['Назва'] || ''}</div>
                                     <div class="card-desc">${p['Опис / Вайб'] || p['Опис'] || ''}</div>
-                                    <div class="card-meta">
-                                        📍 ${p['Адреса'] || 'Львів'}
-                                        ${distanceText ? ` • 🚶‍♂️ ${distanceText}` : ''}
-                                    </div>
+                                    ${distanceText ? `<div class="card-distance">🚶‍♂️ ${distanceText}</div>` : ''}
+                                    <div class="card-meta">📍 ${p['Адреса'] || 'Львів'}</div>
                                 </div>
                             </div>
                         `;
@@ -292,10 +291,10 @@
                                     <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
                                         <span class="card-badge">📅 ${e['Дата та час'] || 'Незабаром'}</span>
                                         <span class="card-badge" style="background: rgba(212, 143, 255, 0.15); border-color: rgba(212, 143, 255, 0.3); color: #e8c5ff;">💵 ${price ? price : 'Ціна'}</span>
-                                        ${distanceText ? `<span class="card-badge" style="background: rgba(255, 255, 255, 0.1);">🚶‍♂️ ${distanceText}</span>` : ''}
                                     </div>
                                     <div class="card-title">${e['Назва події'] || e['Назва'] || ''}</div>
-                                    <div class="card-meta">🏰 ${e['Заклад'] || e['Локація'] || ''}</div>
+                                    ${distanceText ? `<div class="card-distance">🚶‍♂️ ${distanceText}</div>` : ''}
+                                    <div class="card-meta">🏛 ${e['Заклад'] || e['Локація'] || ''}</div>
                                 </div>
                             </div>
                         `;
@@ -331,10 +330,8 @@
                                 <span class="card-badge">${p['Категорія'] || 'Бар / Тусовка'}</span>
                                 <div class="card-title">${p['Назва закладу'] || p['Назва'] || ''}</div>
                                 <div class="card-desc">${p['Опис / Вайб'] || p['Опис'] || ''}</div>
-                                <div class="card-meta">
-                                    📍 ${p['Адреса'] || 'Львів'}
-                                    ${distanceText ? ` • 🚶‍♂️ ${distanceText}` : ''}
-                                </div>
+                                ${distanceText ? `<div class="card-distance">🚶‍♂️ ${distanceText}</div>` : ''}
+                                <div class="card-meta">📍 ${p['Адреса'] || 'Львів'}</div>
                                 ${(p['Графік'] || p['Час роботи']) ? `<div class="card-meta" style="margin-top: 4px; color: #d084ff;">🕒 ${p['Графік'] || p['Час роботи']}</div>` : ''}
                             </div>
                         </div>
@@ -364,11 +361,11 @@
                                 <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
                                     <span class="card-badge">📅 ${e['Дата та час'] || 'Незабаром'}</span>
                                     <span class="card-badge" style="background: rgba(212, 143, 255, 0.15); border-color: rgba(212, 143, 255, 0.3); color: #e8c5ff;">💵 ${price ? price : 'Ціна'}</span>
-                                    ${distanceText ? `<span class="card-badge" style="background: rgba(255, 255, 255, 0.1);">🚶‍♂️ ${distanceText}</span>` : ''}
                                 </div>
                                 <div class="card-title">${e['Назва події'] || e['Назва'] || ''}</div>
+                                <div class="card-desc" style="margin-top: 4px;">${e['Опис події'] || e['Опис'] || ''}</div>
+                                ${distanceText ? `<div class="card-distance">🚶‍♂️ ${distanceText}</div>` : ''}
                                 <div class="card-meta">🏛 ${e['Заклад'] || e['Локація'] || ''}</div>
-                                <div class="card-desc" style="margin-top: 6px;">${e['Опис події'] || e['Опис'] || ''}</div>
                             </div>
                         </div>
                     `;
@@ -532,7 +529,7 @@
             const isLarge = map.getZoom() >= 17;
 
             places.forEach((p, idx) => {
-                const rawCoords = p['Координати'] || p['Координаты'] || p['Coordinates'];
+                const rawCoords = p['Широта'] ? `${p['Широта']},${p['Довгота']}` : (p['Координати'] || p['Координаты'] || p['Coordinates']);
                 if (!rawCoords) return;
                 const parts = String(rawCoords).split(',');
                 if (parts.length < 2) return;
