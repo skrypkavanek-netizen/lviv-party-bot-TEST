@@ -12,13 +12,12 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0d0714; color: #f3effa; padding: 16px; padding-bottom: 40px; }
-        h1 { font-size: 22px; text-align: center; margin-bottom: 12px; color: #d084ff; text-shadow: 0 0 12px rgba(187, 107, 255, 0.4); }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0d0714; color: #f3effa; padding: 16px; padding-bottom: 60px; }
+        h1 { font-size: 22px; text-align: center; margin-bottom: 16px; color: #d084ff; text-shadow: 0 0 12px rgba(187, 107, 255, 0.4); }
         
-        /* Стиль для кнопки поширення */
-        .share-container { display: flex; justify-content: center; margin-bottom: 16px; }
-        .share-btn { background: linear-gradient(135deg, #a855f7, #7e22ce); color: #ffffff; border: none; padding: 8px 16px; border-radius: 14px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4); display: flex; align-items: center; gap: 6px; transition: transform 0.2s ease; }
-        .share-btn:active { transform: scale(0.96); }
+        /* Плаваюча компактна кнопка поширення знизу збоку */
+        .floating-share-btn { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #a855f7, #7e22ce); color: #ffffff; border: none; width: 48px; height: 48px; border-radius: 50%; font-size: 20px; cursor: pointer; box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5); display: flex; align-items: center; justify-content: center; z-index: 999; transition: transform 0.2s ease; border: 2px solid rgba(255, 255, 255, 0.2); }
+        .floating-share-btn:active { transform: scale(0.9); }
 
         .main-tabs { display: flex; background: rgba(35, 18, 56, 0.7); padding: 4px; border-radius: 14px; margin-bottom: 16px; border: 1px solid rgba(187, 107, 255, 0.2); backdrop-filter: blur(10px); gap: 4px; }
         .main-tab-btn { flex: 1; padding: 8px 4px; border: none; background: transparent; color: #a491bc; font-size: 13px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; text-align: center; }
@@ -79,12 +78,10 @@
 
     <h1>🍸 Тусовель Львова</h1>
 
-    <!-- Кнопка поширення бота з красивим прев'ю -->
-    <div class="share-container">
-        <button class="share-btn" onclick="shareBotApp()">
-            📲 Поділитися ботом
-        </button>
-    </div>
+    <!-- Плаваюча кнопка поширення праворуч знизу -->
+    <button class="floating-share-btn" onclick="shareBotApp()" title="Поділитися ботом">
+        🔗
+    </button>
 
     <div class="main-tabs">
         <button id="tab-places-btn" class="main-tab-btn active" onclick="switchMainTab('places')">🥂 Заклади</button>
@@ -152,9 +149,9 @@
             }
         }
 
-        // Функція для поширення бота з прямим посиланням на Mini App (генерує гарне прев'ю)
+        // Функція для поширення бота з прямим посиланням на основний Mini App
         function shareBotApp() {
-            const shareUrl = "https://t.me/tusa_test_bot/app";
+            const shareUrl = "https://t.me/tusa_jusas_bot/app";
             const shareText = "🍸 Перевіряй найкращі вечірки та заклади Львова в одному місці!";
             const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
             
@@ -567,7 +564,7 @@
 
             places.forEach((p, idx) => {
                 const rawLat = p['Широта'] || p['Lat'] || p['lat'] || p['latitude'] || p['Координати'];
-                const rawLng = p['Довгота'] || p['Lon'] || p['lng'] || p['longitude'];
+                const rawLng = p['Довгота'] || p['Lng'] || p['lng'] || p['longitude'];
                 let lat = parseFloat(rawLat);
                 let lng = parseFloat(rawLng);
 
