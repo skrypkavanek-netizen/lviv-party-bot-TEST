@@ -13,7 +13,13 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0d0714; color: #f3effa; padding: 16px; padding-bottom: 40px; }
-        h1 { font-size: 22px; text-align: center; margin-bottom: 16px; color: #d084ff; text-shadow: 0 0 12px rgba(187, 107, 255, 0.4); }
+        h1 { font-size: 22px; text-align: center; margin-bottom: 12px; color: #d084ff; text-shadow: 0 0 12px rgba(187, 107, 255, 0.4); }
+        
+        /* Стиль для кнопки поширення */
+        .share-container { display: flex; justify-content: center; margin-bottom: 16px; }
+        .share-btn { background: linear-gradient(135deg, #a855f7, #7e22ce); color: #ffffff; border: none; padding: 8px 16px; border-radius: 14px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4); display: flex; align-items: center; gap: 6px; transition: transform 0.2s ease; }
+        .share-btn:active { transform: scale(0.96); }
+
         .main-tabs { display: flex; background: rgba(35, 18, 56, 0.7); padding: 4px; border-radius: 14px; margin-bottom: 16px; border: 1px solid rgba(187, 107, 255, 0.2); backdrop-filter: blur(10px); gap: 4px; }
         .main-tab-btn { flex: 1; padding: 8px 4px; border: none; background: transparent; color: #a491bc; font-size: 13px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; text-align: center; }
         .main-tab-btn.active { background: linear-gradient(135deg, #a855f7, #7e22ce); color: #ffffff; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4); }
@@ -72,6 +78,13 @@
 <body>
 
     <h1>🍸 Тусовель Львова</h1>
+
+    <!-- Кнопка поширення бота з красивим прев'ю -->
+    <div class="share-container">
+        <button class="share-btn" onclick="shareBotApp()">
+            📲 Поділитися ботом
+        </button>
+    </div>
 
     <div class="main-tabs">
         <button id="tab-places-btn" class="main-tab-btn active" onclick="switchMainTab('places')">🥂 Заклади</button>
@@ -136,6 +149,19 @@
                         userLocation = null;
                     }
                 );
+            }
+        }
+
+        // Функція для поширення бота з прямим посиланням на Mini App (генерує гарне прев'ю)
+        function shareBotApp() {
+            const shareUrl = "https://t.me/tusa_test_bot/app";
+            const shareText = "🍸 Перевіряй найкращі вечірки та заклади Львова в одному місці!";
+            const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+            
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.openTelegramLink(telegramShareUrl);
+            } else {
+                window.open(telegramShareUrl, '_blank');
             }
         }
 
@@ -521,20 +547,35 @@
             if (!map) {
                 map = L.map('map-container', { zoomControl: true }).setView([49.842957, 24.031111], 14);
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+                map.on('zoomend', updateMarkersZoom);
+
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(position => {
+                        const userIcon = L.divIcon({
+                            className: 'user-location-marker',
+                            html: '<div style="background:#007aff; width:14px; height:14px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 10px #007aff;"></div>',
+                            iconSize: [14, 14], iconAnchor: [7, 7]
+                        });
+                        L.marker([position.coords.latitude, position.coords.longitude], { icon: userIcon }).addTo(map).bindPopup('<b>Ви тут 📍</b>');
+                    }, () => {});
+                }
             }
-            
+
             placeMarkers.forEach(item => map.removeLayer(item.marker));
             placeMarkers = [];
-
             const isLarge = map.getZoom() >= 17;
 
             places.forEach((p, idx) => {
-                const rawCoords = p['Широта'] ? `${p['Широта']},${p['Довгота']}` : (p['Координати'] || p['Координаты'] || p['Coordinates']);
-                if (!rawCoords) return;
-                const parts = String(rawCoords).split(',');
-                if (parts.length < 2) return;
-                const lat = parseFloat(parts[0]);
-                const lng = parseFloat(parts[1]);
+                const rawLat = p['Широта'] || p['Lat'] || p['lat'] || p['latitude'] || p['Координати'];
+                const rawLng = p['Довгота'] || p['Lon'] || p['lng'] || p['longitude'];
+                let lat = parseFloat(rawLat);
+                let lng = parseFloat(rawLng);
+
+                if (isNaN(lat) && typeof rawLat === 'string' && rawLat.includes(',')) {
+                    const parts = rawLat.split(',');
+                    lat = parseFloat(parts[0]);
+                    lng = parseFloat(parts[1]);
+                }
 
                 if (!isNaN(lat) && !isNaN(lng)) {
                     const venueName = p['Назва закладу'] || p['Назва'] || 'Заклад';
@@ -548,25 +589,23 @@
                     placeMarkers.push({ marker, name: venueName, placeData: p });
                 }
             });
-
-            map.off('zoomend', updateMarkersZoom);
-            map.on('zoomend', updateMarkersZoom);
         }
 
         function filterPlaces(category, btn) {
+            currentPlaceFilter = category;
             document.querySelectorAll('#places-categories-bar .cat-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            currentPlaceFilter = category;
             renderContent();
         }
 
         function filterEvents(dateFilter, btn) {
+            currentEventDateFilter = dateFilter;
             document.querySelectorAll('#events-date-bar .cat-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            currentEventDateFilter = dateFilter;
             renderContent();
         }
 
+        // Запуск завантаження даних
         loadData();
     </script>
 </body>
