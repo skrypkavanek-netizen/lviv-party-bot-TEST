@@ -409,12 +409,19 @@
             document.getElementById('modal-meta').innerHTML = metaHtml;
             document.getElementById('modal-desc').innerText = p['Опис / Вайб'] || p['Опис'] || '';
 
-const venueName = (p['Назва закладу'] || p['Назва'] || '').toLowerCase().trim();
+const rawVenueName = (p['Назва закладу'] || p['Назва'] || '').toLowerCase().trim();
+    // Беремо перше слово назви закладу (наприклад, "цегла" з "Цегла Бар 1")
+    const mainKeyword = rawVenueName.split(' ')[0]; 
+
     const venueEvents = (dbData['Події'] || []).filter(e => {
         const eventVenue = String(e['Заклад'] || e['Локація'] || '').toLowerCase().trim();
-        return eventVenue !== '' && (eventVenue.includes(venueName) || venueName.includes(eventVenue));
+        if (eventVenue === '') return false;
+        
+        // Перевіряємо чи містить подія повну назву або головне ключове слово (наприклад, "цегла" чи "оплески")
+        return eventVenue.includes(rawVenueName) || 
+               rawVenueName.includes(eventVenue) || 
+               (mainKeyword.length > 2 && eventVenue.includes(mainKeyword));
     });
-
             const eventsContainer = document.getElementById('modal-events-list');
             if (venueEvents.length > 0) {
                 eventsContainer.innerHTML = `
