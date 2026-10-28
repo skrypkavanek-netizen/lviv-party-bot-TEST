@@ -15,7 +15,6 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0d0714; color: #f3effa; padding: 16px; padding-bottom: 60px; }
         h1 { font-size: 22px; text-align: center; margin-bottom: 16px; color: #d084ff; text-shadow: 0 0 12px rgba(187, 107, 255, 0.4); }
         
-        /* Плаваюча компактна кнопка поширення знизу збоку */
         .floating-share-btn { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #a855f7, #7e22ce); color: #ffffff; border: none; width: 48px; height: 48px; border-radius: 50%; font-size: 20px; cursor: pointer; box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5); display: flex; align-items: center; justify-content: center; z-index: 999; transition: transform 0.2s ease; border: 2px solid rgba(255, 255, 255, 0.2); }
         .floating-share-btn:active { transform: scale(0.9); }
 
@@ -32,7 +31,6 @@
         .card { background: rgba(28, 15, 46, 0.7); border-radius: 16px; overflow: hidden; border: 1px solid rgba(187, 107, 255, 0.15); backdrop-filter: blur(8px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); cursor: pointer; transition: transform 0.2s ease; position: relative; }
         .card:active { transform: scale(0.98); }
         
-        /* Зображення у картках — не обрізаються */
         .card-img { width: 100%; height: auto; max-height: 350px; object-fit: contain; display: block; background: rgba(0, 0, 0, 0.2); }
         
         .card-body { padding: 14px 16px 16px 16px; }
@@ -61,7 +59,6 @@
         .venue-events-scroll::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.4); border-radius: 4px; }
         .venue-event-card { background: rgba(35, 18, 56, 0.8); border: 1px solid rgba(187, 107, 255, 0.25); border-radius: 14px; overflow: hidden; }
         
-        /* Зображення подій всередині закладу — не обрізаються */
         .venue-event-img { width: 100%; height: auto; max-height: 250px; object-fit: contain; display: block; background: rgba(0, 0, 0, 0.2); }
         
         .venue-event-body { padding: 12px; }
@@ -76,7 +73,6 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .modal-close { background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; }
         
-        /* Зображення в модальному вікні — не обрізаються */
         .modal-img { width: 100%; height: auto; max-height: 450px; object-fit: contain; border-radius: 14px; margin-bottom: 14px; background: rgba(0, 0, 0, 0.2); }
         
         .btn-action { display: block; width: 100%; background: linear-gradient(135deg, #a855f7, #7e22ce); color: #ffffff; text-align: center; text-decoration: none; padding: 12px; border-radius: 12px; font-weight: bold; font-size: 14px; margin-top: 16px; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); }
@@ -87,7 +83,6 @@
 
     <h1>🍸 Тусовель Львова</h1>
 
-    <!-- Плаваюча кнопка поширення праворуч знизу -->
     <button class="floating-share-btn" onclick="shareBotApp()" title="Поділитися ботом">
         🔗
     </button>
@@ -99,7 +94,6 @@
         <button id="tab-favs-btn" class="main-tab-btn" onclick="switchMainTab('favorites')">⭐ Обране</button>
     </div>
 
-    <!-- Категорії Закладів -->
     <div id="places-categories-bar" class="categories">
         <button class="cat-btn active" onclick="filterPlaces('all', this)">🔥 Усі</button>
         <button class="cat-btn" onclick="filterPlaces('Бар', this)">🍻 Бари / Пиво</button>
@@ -107,7 +101,6 @@
         <button class="cat-btn" onclick="filterPlaces('Стендап', this)">🎤 Шоу / Стендап</button>
     </div>
 
-    <!-- Фільтри Дати для Подій -->
     <div id="events-date-bar" class="categories" style="display: none;">
         <button class="cat-btn active" onclick="filterEvents('all', this)">🔥 Усі дати</button>
         <button class="cat-btn" onclick="filterEvents('today', this)">⚡ Сьогодні</button>
@@ -158,7 +151,6 @@
             }
         }
 
-        // Функція для поширення бота з прямим посиланням на основний Mini App
         function shareBotApp() {
             const shareUrl = "https://t.me/tusa_jusas_bot/app";
             const shareText = "🍸 Перевіряй найкращі вечірки та заклади Львова в одному місці!";
@@ -480,8 +472,8 @@
             if (photoUrl) { img.src = photoUrl; img.style.display = 'block'; } else { img.style.display = 'none'; }
 
             const btn = document.getElementById('modal-btn');
-            const ticketUrl = e['Квитки'] || e['Посилання'];
-            if (ticketUrl) {
+            const ticketUrl = e['Квитки (посилання на купівлю)'] || e['Квитки'] || e['Посилання'] || e['Квитки (посилання)'];
+            if (ticketUrl && String(ticketUrl).trim() !== '') {
                 btn.href = ticketUrl;
                 btn.innerText = '🎟 Придбати квитки / Детальніше';
                 btn.style.display = 'block';
@@ -611,7 +603,6 @@
             renderContent();
         }
 
-        // Запуск завантаження даних
         loadData();
     </script>
 </body>
