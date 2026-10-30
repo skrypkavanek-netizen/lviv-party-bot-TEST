@@ -410,24 +410,26 @@
             document.getElementById('modal-meta').innerHTML = metaHtml;
             document.getElementById('modal-desc').innerText = p['Опис / Вайб'] || p['Опис'] || '';
 
-            const rawVenueName = (p['Назва закладу'] || p['Назва'] || '').toLowerCase().trim();
-            // Очищаємо назву закладу від технічних слів, щоб залишити унікальне ім'я (наприклад, "цегла бар 1" -> "цегла")
-            const cleanThisVenue = rawVenueName
-                .replace(/\b(бар|паб|клуб|pub|bar|простір|\d+)\b/gi, '')
-                .trim();
-
+            const rawVenueName = String(p['Назва закладу'] || p['Назва'] || '').toLowerCase().trim();
+            
             const allEvents = dbData['Події'] || [];
             const venueEvents = allEvents.filter(e => {
                 const eventVenue = String(e['Заклад'] || e['Локація'] || '').toLowerCase().trim();
                 if (eventVenue === '') return false;
                 
-                const cleanEventVenue = eventVenue
-                    .replace(/\b(бар|паб|клуб|pub|bar|простір|\d+)\b/gi, '')
-                    .trim();
+                // 1. Точний збіг назв (для випадків з цифрами на кшталт "Цегла Бар 1" та "Цегла Бар 2")
+                if (eventVenue === rawVenueName) return true;
 
-                // Порівнюємо або повні назви, або суворо чіткий збіг базових унікальних слів (наприклад, обидва містять "цегла")
-                return eventVenue === rawVenueName || 
-                       (cleanThisVenue.length > 2 && cleanEventVenue === cleanThisVenue);
+                // 2. Якщо назви у базі подій без чисел, але у закладу немає цифрового розділення
+                const cleanThis = rawVenueName.replace(/\b(бар|паб|клуб|pub|bar|простір)\b/gi, '').trim();
+                const cleanEvent = eventVenue.replace(/\b(бар|паб|клуб|pub|bar|простір)\b/gi, '').trim();
+
+                // Працює лише для закладу без цифр у назві, щоб випадково не змішати Бар 1 та Бар 2
+                if (!/\d/.test(rawVenueName) && cleanThis.length >= 3) {
+                    return cleanEvent.includes(cleanThis) || cleanThis.includes(cleanEvent);
+                }
+
+                return false;
             });
 
             const eventsContainer = document.getElementById('modal-events-list');
@@ -579,7 +581,7 @@
                 }
             }
 
-            placeMarkers.forEach(item => map.marker.remove()); // safe cleanup if needed, keeping original logic below
+            placeMarkers.forEach(item => map.removeLayer(item.marker));
             placeMarkers = [];
             const isLarge = map.getZoom() >= 17;
 
