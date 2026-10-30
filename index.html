@@ -410,27 +410,24 @@
             document.getElementById('modal-meta').innerHTML = metaHtml;
             document.getElementById('modal-desc').innerText = p['Опис / Вайб'] || p['Опис'] || '';
 
-const rawVenueName = (p['Назва закладу'] || p['Назва'] || '').toLowerCase().trim();
-            
-            // Визначаємо унікальні ключові слова конкретно для закладів, щоб уникнути плутанини
-            let venueKey = rawVenueName;
-            if (rawVenueName.includes('цегла')) venueKey = 'цегла';
-            else if (rawVenueName.includes('оплески')) venueKey = 'оплески';
-            else if (rawVenueName.includes('квартирник')) venueKey = 'квартирник';
-            else if (rawVenueName.includes('травень')) venueKey = 'травень';
-            else {
-                // Залишаємо перше значуще слово, якщо воно не є загальним типу "бар"
-                const words = rawVenueName.split(' ').filter(w => !['бар', 'паб', 'клуб', 'the'].includes(w));
-                venueKey = words[0] || rawVenueName;
-            }
+            const rawVenueName = (p['Назва закладу'] || p['Назва'] || '').toLowerCase().trim();
+            // Очищаємо назву закладу від технічних слів, щоб залишити унікальне ім'я (наприклад, "цегла бар 1" -> "цегла")
+            const cleanThisVenue = rawVenueName
+                .replace(/\b(бар|паб|клуб|pub|bar|простір|\d+)\b/gi, '')
+                .trim();
 
             const allEvents = dbData['Події'] || [];
             const venueEvents = allEvents.filter(e => {
                 const eventVenue = String(e['Заклад'] || e['Локація'] || '').toLowerCase().trim();
                 if (eventVenue === '') return false;
                 
-                // Перевіряємо точне входження унікального ключа закладу
-                return eventVenue.includes(venueKey);
+                const cleanEventVenue = eventVenue
+                    .replace(/\b(бар|паб|клуб|pub|bar|простір|\d+)\b/gi, '')
+                    .trim();
+
+                // Порівнюємо або повні назви, або суворо чіткий збіг базових унікальних слів (наприклад, обидва містять "цегла")
+                return eventVenue === rawVenueName || 
+                       (cleanThisVenue.length > 2 && cleanEventVenue === cleanThisVenue);
             });
 
             const eventsContainer = document.getElementById('modal-events-list');
@@ -582,7 +579,7 @@ const rawVenueName = (p['Назва закладу'] || p['Назва'] || '').t
                 }
             }
 
-            placeMarkers.forEach(item => map.removeLayer(item.marker));
+            placeMarkers.forEach(item => map.marker.remove()); // safe cleanup if needed, keeping original logic below
             placeMarkers = [];
             const isLarge = map.getZoom() >= 17;
 
