@@ -410,20 +410,27 @@
             document.getElementById('modal-meta').innerHTML = metaHtml;
             document.getElementById('modal-desc').innerText = p['Опис / Вайб'] || p['Опис'] || '';
 
-            const rawVenueName = (p['Назва закладу'] || p['Назва'] || '').toLowerCase().trim();
-            const cleanVenueName = rawVenueName
-                .replace(/\b(бар|паб|клуб|pub|bar|простір)\b/gi, '')
-                .trim();
+const rawVenueName = (p['Назва закладу'] || p['Назва'] || '').toLowerCase().trim();
+            
+            // Визначаємо унікальні ключові слова конкретно для закладів, щоб уникнути плутанини
+            let venueKey = rawVenueName;
+            if (rawVenueName.includes('цегла')) venueKey = 'цегла';
+            else if (rawVenueName.includes('оплески')) venueKey = 'оплески';
+            else if (rawVenueName.includes('квартирник')) venueKey = 'квартирник';
+            else if (rawVenueName.includes('травень')) venueKey = 'травень';
+            else {
+                // Залишаємо перше значуще слово, якщо воно не є загальним типу "бар"
+                const words = rawVenueName.split(' ').filter(w => !['бар', 'паб', 'клуб', 'the'].includes(w));
+                venueKey = words[0] || rawVenueName;
+            }
 
             const allEvents = dbData['Події'] || [];
             const venueEvents = allEvents.filter(e => {
                 const eventVenue = String(e['Заклад'] || e['Локація'] || '').toLowerCase().trim();
                 if (eventVenue === '') return false;
                 
-                if (eventVenue.includes(rawVenueName) || rawVenueName.includes(eventVenue)) return true;
-                if (cleanVenueName.length >= 3 && eventVenue.includes(cleanVenueName)) return true;
-
-                return false;
+                // Перевіряємо точне входження унікального ключа закладу
+                return eventVenue.includes(venueKey);
             });
 
             const eventsContainer = document.getElementById('modal-events-list');
