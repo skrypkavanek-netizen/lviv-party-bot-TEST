@@ -411,16 +411,19 @@
             document.getElementById('modal-desc').innerText = p['Опис / Вайб'] || p['Опис'] || '';
 
             const rawVenueName = (p['Назва закладу'] || p['Назва'] || '').toLowerCase().trim();
-            const mainKeyword = rawVenueName.split(' ')[0]; 
+            const cleanVenueName = rawVenueName
+                .replace(/\b(бар|паб|клуб|pub|bar|простір)\b/gi, '')
+                .trim();
 
             const allEvents = dbData['Події'] || [];
             const venueEvents = allEvents.filter(e => {
                 const eventVenue = String(e['Заклад'] || e['Локація'] || '').toLowerCase().trim();
                 if (eventVenue === '') return false;
                 
-                return eventVenue.includes(rawVenueName) || 
-                       rawVenueName.includes(eventVenue) || 
-                       (mainKeyword.length > 2 && eventVenue.includes(mainKeyword));
+                if (eventVenue.includes(rawVenueName) || rawVenueName.includes(eventVenue)) return true;
+                if (cleanVenueName.length >= 3 && eventVenue.includes(cleanVenueName)) return true;
+
+                return false;
             });
 
             const eventsContainer = document.getElementById('modal-events-list');
